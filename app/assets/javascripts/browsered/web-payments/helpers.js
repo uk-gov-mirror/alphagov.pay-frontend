@@ -124,10 +124,22 @@ const getGooglePaymentsConfiguration = (paymentProvider) => {
   }
 }
 
+const getBrowserInfo = () => {
+  return {
+    js_enabled: true,
+    js_navigator_language: navigator.language,
+    js_screen_color_depth: window.screen.colorDepth,
+    js_screen_height: window.screen.height,
+    js_screen_width: window.screen.width,
+    js_timezone_offset_mins: new Date().getTimezoneOffset()
+  }
+}
+
 module.exports = {
   showErrorSummary,
   clearErrorSummary,
   toggleWaiting,
   prepareAppleRequestObject,
-  getGooglePaymentsConfiguration
+  getGooglePaymentsConfiguration,
+  getBrowserInfo
 }
