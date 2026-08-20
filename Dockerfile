@@ -13,6 +13,7 @@ WORKDIR /build-stage
 COPY . ./
 RUN npm ci --quiet
 RUN npm run compile
+RUN npm prune --omit=dev
 
 FROM base AS final
 
@@ -26,20 +27,17 @@ COPY --from=builder /build-stage/config ./config
 COPY --from=builder /build-stage/locales ./locales
 COPY --from=builder /build-stage/server.js ./
 COPY --from=builder /build-stage/start.js ./
-COPY --from=builder /build-stage/.npmrc ./
 
-RUN npm prune --omit=dev \
-    && rm -rf /usr/local/lib/node_modules/npm \
-        /usr/local/lib/node_modules/corepack \
-        /usr/local/bin/npm \
-        /usr/local/bin/npx \
-        /usr/local/bin/corepack \
-        /opt/yarn-* \
-        /usr/local/bin/yarn \
-        /usr/local/bin/yarnpkg
+RUN rm -rf /usr/local/lib/node_modules/npm \
+    /usr/local/lib/node_modules/corepack \
+    /usr/local/bin/npm \
+    /usr/local/bin/npx \
+    /usr/local/bin/corepack \
+    /opt/yarn-* \
+    /usr/local/bin/yarn \
+    /usr/local/bin/yarnpkg
 
 ENV PORT=9000
 EXPOSE 9000
-USER 1000
 ENTRYPOINT ["tini", "--"]
 CMD ["node", "start.js"]
