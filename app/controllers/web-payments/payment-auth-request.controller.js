@@ -40,6 +40,10 @@ module.exports = (req, res, next) => {
     payload
   }
 
+  if (paymentProvider === 'adyen' && wallet === 'google') {
+    return sendAydenGooglePayPaymentToConnector(req, res, chargeOptions, chargeId, wallet)
+  }
+
   return connectorClient({ correlationId: req.headers[CORRELATION_HEADER] }).chargeAuthWithWallet(chargeOptions, getLoggingFields(req))
     .then(response => {
       setSessionVariable(req, `ch_${(chargeId)}.webPaymentAuthResponse`, {
@@ -59,5 +63,28 @@ module.exports = (req, res, next) => {
       res.status(200)
       // Always return 200 - the redirect handles the error
       res.send({ url: `/handle-payment-response/${wallet}/${chargeId}` })
+    })
+}
+
+const sendAydenGooglePayPaymentToConnector = (req, res, chargeOptions, chargeId) => {
+  return connectorClient({ correlationId: req.headers[CORRELATION_HEADER] }).chargeAuthWithAdyenGooglePay(chargeOptions, getLoggingFields(req))
+    .then(response => {
+      setSessionVariable(req, `ch_${(chargeId)}.webPaymentAuthResponse`, {
+        statusCode: response.status,
+        ...response.data && response.data.error_identifier && { errorIdentifier: response.data.error_identifier }
+      })
+
+      // Always return 200 - the redirect checks if there are any errors
+      res.status(200)
+      res.send({ url: `/handle-payment-response/google/${chargeId}` })
+    })
+    .catch(err => {
+      logger.error('Error while trying to authorise Google Pay Adyen payment', {
+        ...getLoggingFields(req),
+        error: err
+      })
+      res.status(200)
+      // Always return 200 - the redirect handles the error
+      res.send({ url: `/handle-payment-response/google/${chargeId}` })
     })
 }

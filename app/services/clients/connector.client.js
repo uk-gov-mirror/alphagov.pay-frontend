@@ -31,10 +31,14 @@ const _getAuthUrlFor = chargeId => baseUrl + CARD_AUTH_PATH.replace('{chargeId}'
 
 /** @private */
 const _getWalletAuthUrlFor = (chargeId, walletType) => {
-  const walletAuthUrl = baseUrl + WALLET_AUTH_PATH
+  return baseUrl + WALLET_AUTH_PATH
     .replace('{chargeId}', chargeId)
     .replace('{walletType}', walletType)
-  return walletAuthUrl
+}
+
+/** @private */
+const _getAdyenGoogleAuthUrlFor = (chargeId, walletType, adyen) => {
+  return _getWalletAuthUrlFor(chargeId, walletType) + adyen
 }
 
 /** @private */
@@ -183,6 +187,11 @@ const chargeAuthWithWallet = (chargeOptions, loggingFields = {}) => {
   return _postConnector(authUrl, chargeOptions.payload, 'create charge using e-wallet payment', loggingFields, 'chargeAuthWithWallet')
 }
 
+const chargeAuthWithAdyenGooglePay = (chargeOptions, loggingFields = {}) => {
+  const authUrl = _getAdyenGoogleAuthUrlFor(chargeOptions.chargeId, 'google', '/adyen')
+  return _postConnector(authUrl, chargeOptions.payload, 'create Adyen Google Pay charge using e-wallet payment', loggingFields, 'chargeAuthWithAdyenGooglePay')
+}
+
 const capture = (chargeOptions, loggingFields = {}) => {
   const captureUrl = _getCaptureUrlFor(chargeOptions.chargeId)
   return _postConnector(captureUrl, null, 'do capture', loggingFields, 'capture')
@@ -233,6 +242,7 @@ module.exports = function (clientOptions = {}) {
   return {
     chargeAuth,
     chargeAuthWithWallet,
+    chargeAuthWithAdyenGooglePay,
     threeDs,
     updateStatus,
     findCharge,
