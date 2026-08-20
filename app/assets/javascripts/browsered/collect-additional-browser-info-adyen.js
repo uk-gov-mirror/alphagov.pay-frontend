@@ -11,8 +11,10 @@ const init = () => {
 
 const addAdditionalInformation = () => {
   document.getElementById('jsEnabled').value = 'true'
-  for (const [key, value] of Object.entries(getBrowserInfo)) {
-    appendHiddenInputToForm(keysToCamelCase(key), value)
+  const browserInfo = keysToCamelCase(getBrowserInfo())
+
+  for (const [key, value] of Object.entries(browserInfo)) {
+    appendHiddenInputToForm(key, value)
   }
 }
 
